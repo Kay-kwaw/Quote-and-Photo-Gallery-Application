@@ -5,6 +5,7 @@ import 'package:qoute_gallery_app/constants/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MyGalleryScreen extends StatefulWidget {
   const MyGalleryScreen({super.key});
@@ -98,6 +99,37 @@ class _MyGalleryScreenState extends State<MyGalleryScreen>
     );
   }
 
+  /// Build shimmer effect for header text
+  Widget _buildShimmerHeader() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: 40,
+        width: 300,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  /// Build shimmer effect for image card
+  Widget _buildShimmerImageCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: 400,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool imagesEmpty = _images.isEmpty;
@@ -126,16 +158,18 @@ class _MyGalleryScreenState extends State<MyGalleryScreen>
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Discover beautiful, randomly generated images\nSwipe to explore more!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.figtree(
-                height: 1.4,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryColor,
-              ),
-            ),
+            child: _isImageLoading && imagesEmpty
+                ? _buildShimmerHeader()
+                : Text(
+                    'Discover beautiful, randomly generated images\nSwipe to explore more!',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(
+                      height: 1.4,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryColor,
+                    ),
+                  ),
           ),
           if (_isImageLoading) ...[
             const SizedBox(height: 8),
@@ -148,20 +182,25 @@ class _MyGalleryScreenState extends State<MyGalleryScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          _isImageLoading ? 'Fetching images…' : 'No images yet',
-                          style: GoogleFonts.figtree(
-                            color: AppColors.textColor,
-                            fontSize: 14,
+                        if (_isImageLoading) ...[
+                          _buildShimmerImageCard(),
+                          const SizedBox(height: 16),
+                          _buildShimmerHeader(),
+                        ] else ...[
+                          Text(
+                            'No images yet',
+                            style: GoogleFonts.figtree(
+                              color: AppColors.textColor,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (!_isImageLoading)
+                          const SizedBox(height: 8),
                           OutlinedButton.icon(
                             onPressed: _fetchImage,
                             icon: const Icon(Icons.image),
                             label: const Text('Load image'),
                           ),
+                        ],
                       ],
                     ),
                   )
@@ -199,7 +238,7 @@ class _MyGalleryScreenState extends State<MyGalleryScreen>
                                     fit: BoxFit.cover,
                                     loadingBuilder: (context, child, loadingProgress) {
                                       if (loadingProgress == null) return child;
-                                      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                                      return _buildShimmerImageCard();
                                     },
                                     errorBuilder: (context, error, stackTrace) => Center(
                                       child: Icon(Icons.broken_image, color: AppColors.textColor.withOpacity(0.6)),

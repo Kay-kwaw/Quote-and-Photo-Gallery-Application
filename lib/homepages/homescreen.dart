@@ -6,10 +6,11 @@ import 'package:qoute_gallery_app/constants/images.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
-import 'package:qoute_gallery_app/homepages/gallery_screen.dart';
 import 'dart:convert';
+import 'package:shimmer/shimmer.dart';
 
 import 'package:qoute_gallery_app/homepages/qoutes_screen.dart';
+import 'package:qoute_gallery_app/homepages/gallery_screen.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -38,6 +39,36 @@ class _HomescreenState extends State<Homescreen>
 
   final Set<int> _favoriteImages = <int>{};
   final Set<int> _favoriteQuotes = <int>{};
+
+  /// Build shimmer effect for image card
+  Widget _buildShimmerImageCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+
+  /// Build shimmer effect for quote card
+  Widget _buildShimmerQuoteCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
 
   /// Initialize the screen by setting up animation controller and fetching initial data
   @override
@@ -275,25 +306,26 @@ class _HomescreenState extends State<Homescreen>
             height: 200,
             child: imagesEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _isImageLoading ? 'Fetching images…' : 'No images yet',
-                          style: GoogleFonts.figtree(
-                            color: AppColors.textColor,
-                            fontSize: 14,
+                    child: _isImageLoading
+                        ? _buildShimmerImageCard()
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'No images yet',
+                                style: GoogleFonts.figtree(
+                                  color: AppColors.textColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: _fetchImage,
+                                icon: const Icon(Icons.image),
+                                label: const Text('Load image'),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (!_isImageLoading)
-                          OutlinedButton.icon(
-                            onPressed: _fetchImage,
-                            icon: const Icon(Icons.image),
-                            label: const Text('Load image'),
-                          ),
-                      ],
-                    ),
                   )
                 : PageView.builder(
                     controller: _imagePageController,
@@ -329,7 +361,7 @@ class _HomescreenState extends State<Homescreen>
                                     fit: BoxFit.cover,
                                     loadingBuilder: (context, child, loadingProgress) {
                                       if (loadingProgress == null) return child;
-                                      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                                      return _buildShimmerImageCard();
                                     },
                                     errorBuilder: (context, error, stackTrace) => Center(
                                       child: Icon(Icons.broken_image, color: AppColors.textColor.withOpacity(0.6)),
@@ -375,25 +407,26 @@ class _HomescreenState extends State<Homescreen>
             height: 300,
             child: quotesEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _isQuoteLoading ? 'Fetching quotes…' : 'No quotes yet',
-                          style: GoogleFonts.figtree(
-                            color: AppColors.textColor,
-                            fontSize: 14,
+                    child: _isQuoteLoading
+                        ? _buildShimmerQuoteCard()
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'No quotes yet',
+                                style: GoogleFonts.figtree(
+                                  color: AppColors.textColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: _fetchQuote,
+                                icon: const Icon(Icons.format_quote),
+                                label: const Text('Load quote'),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (!_isQuoteLoading)
-                          OutlinedButton.icon(
-                            onPressed: _fetchQuote,
-                            icon: const Icon(Icons.format_quote),
-                            label: const Text('Load quote'),
-                          ),
-                      ],
-                    ),
                   )
                 : PageView.builder(
                     controller: _quotePageController,
